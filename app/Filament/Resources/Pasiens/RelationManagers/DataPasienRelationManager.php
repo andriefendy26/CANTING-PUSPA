@@ -41,9 +41,30 @@ class DataPasienRelationManager extends RelationManager
                 ->validationMessages(['unique' => 'Data bulan ini sudah ada.']),
             TextInput::make('bb')->label('BB (kg)')->numeric()->step(0.1)->suffix('kg'),
             TextInput::make('tb')->label('TB (cm)')->numeric()->step(0.1)->suffix('cm'),
-            TextInput::make('keterangan')
-                ->placeholder('lulus balita / pulkam / pindah RT 7 / normal')
-                ->columnSpanFull(),
+            Select::make('keterangan')
+                ->options([
+                    'lulus balita' => 'Lulus Balita',
+                    'pulkam' => 'Pulkam',
+                    'pindah RT 7' => 'Pindah RT 7',
+                    'normal' => 'Normal',
+                    'lainnya' => 'Lainnya',
+                ])
+                ->placeholder('Keterangan (opsional)')
+                ->live()
+                ->afterStateUpdated(function ($state, callable $set) {
+                    if ($state !== 'lainnya') {
+                        $set('keterangan_lainnya', null);
+                    }
+                }),
+
+            TextInput::make('keterangan_lainnya')
+                ->label('Keterangan Lainnya')
+                ->placeholder('Masukkan keterangan secara manual')
+                ->visible(fn (callable $get) => $get('keterangan') === 'lainnya')
+                ->required(fn (callable $get) => $get('keterangan') === 'lainnya'),
+            // TextInput::make('keterangan')
+            //     ->placeholder('lulus balita / pulkam / pindah RT 7 / normal')
+            //     ->columnSpanFull(),
         ])->columns(2);
     }
 

@@ -2,10 +2,10 @@
     <img
         src="{{ asset('images/logo.svg') }}"
         alt="Logo"
-        class="h-10 w-auto"
+        class="h-12 w-auto"
     >
 
     <span class="text-md margin-1 font-bold text-gray-950 dark:text-white">
-        Canting </br> Puspa
+        Canting Puspa
     </span>
 </div>
