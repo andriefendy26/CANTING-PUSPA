@@ -177,13 +177,19 @@
 
         footer { padding-block: 2rem 2.5rem; color: var(--muted); font-size: .925rem; }
         footer .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; gap: .5rem; }
+        .Logo {
+            width: 2.5rem;
+        }
     </style>
 </head>
 <body>
 
     <header>
         <div class="wrap">
-            <a href="{{ url('/') }}" class="brand"><span class="brand-dot" aria-hidden="true"></span>Canting-Puspa</a>
+            <a href="{{ url('/') }}" class="brand">
+                <img class="Logo" src="{{ asset('images/logo.svg') }}" alt="Logo" >
+            <!-- <span class="brand-dot" aria-hidden="true"></span> -->
+            Canting-Puspa</a>
             <nav aria-label="Navigasi utama">
                 <a href="#fitur">Fitur</a>
                 <a href="#alur">Cara kerja</a>
