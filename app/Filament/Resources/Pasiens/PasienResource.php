@@ -17,11 +17,13 @@ use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
+use Filament\Infolists\Components\TextEntry;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 
 class PasienResource extends Resource
@@ -32,40 +34,142 @@ class PasienResource extends Resource
 
     protected static ?string $modelLabel = 'Pasien';
 
+    protected static ?string $pluralModelLabel = 'Data Pasien';
+
     protected static ?string $recordTitleAttribute = 'nama_lengkap';
 
+    protected static ?int $navigationSort = 1;
+
+    /* ---------------------------------------------------------------
+     |  FORM (create / edit)
+     * ------------------------------------------------------------- */
     public static function form(Schema $schema): Schema
     {
         return $schema->components([
-            Section::make('Data Pasien')
+            Section::make('Identitas Pasien')
+                ->description('Data diri pasien balita.')
+                ->icon(Heroicon::OutlinedIdentification)
                 ->columns(2)
                 ->schema([
-                    TextInput::make('nama_lengkap')->required()->maxLength(255),
+                    TextInput::make('nama_lengkap')
+                        ->label('Nama Lengkap')
+                        ->required()
+                        ->maxLength(255)
+                        ->columnSpanFull(),
                     Select::make('jenis_kelamin')
+                        ->label('Jenis Kelamin')
                         ->options(['L' => 'Laki-laki', 'P' => 'Perempuan'])
+                        ->native(false)
                         ->required(),
-                    TextInput::make('tempat_lahir'),
-                    DatePicker::make('tanggal_lahir')->required()->maxDate(now()),
-                    TextInput::make('no_telepon')->tel(),
-                    Textarea::make('alamat')->columnSpanFull(),
+                    DatePicker::make('tanggal_lahir')
+                        ->label('Tanggal Lahir')
+                        ->native(false)
+                        ->displayFormat('d/m/Y')
+                        ->maxDate(now())
+                        ->required(),
+                    TextInput::make('tempat_lahir')
+                        ->label('Tempat Lahir')
+                        ->columnSpanFull(),
+                ]),
+
+            Section::make('Kontak & Alamat')
+                ->icon(Heroicon::OutlinedMapPin)
+                ->columns(2)
+                ->schema([
+                    TextInput::make('no_telepon')
+                        ->label('No. Telepon')
+                        ->tel()
+                        ->prefixIcon(Heroicon::OutlinedPhone)
+                        ->columnSpanFull(),
+                    Textarea::make('alamat')
+                        ->label('Alamat')
+                        ->rows(3)
+                        ->columnSpanFull(),
                 ]),
         ]);
     }
 
+    /* ---------------------------------------------------------------
+     |  INFOLIST (halaman detail / View)
+     * ------------------------------------------------------------- */
+    public static function infolist(Schema $schema): Schema
+    {
+        return $schema->components([
+            Section::make('Identitas Pasien')
+                ->icon(Heroicon::OutlinedIdentification)
+                ->columns(['default' => 1, 'md' => 3])
+                ->schema([
+                    TextEntry::make('nama_lengkap')
+                        ->label('Nama Lengkap')
+                        ->weight('bold')
+                        ->columnSpan(['md' => 2]),
+                    TextEntry::make('jenis_kelamin')
+                        ->label('Jenis Kelamin')
+                        ->badge()
+                        ->formatStateUsing(fn (string $state) => $state === 'L' ? 'Laki-laki' : 'Perempuan')
+                        ->color(fn (string $state) => $state === 'L' ? 'info' : 'danger'),
+                    TextEntry::make('tempat_lahir')
+                        ->label('Tempat Lahir')
+                        ->placeholder('-'),
+                    TextEntry::make('tanggal_lahir')
+                        ->label('Tanggal Lahir')
+                        ->date('d F Y'),
+                    TextEntry::make('usia')
+                        ->label('Usia')
+                        ->badge()
+                        ->color('success'),
+                    TextEntry::make('no_telepon')
+                        ->label('No. Telepon')
+                        ->placeholder('-'),
+                    TextEntry::make('alamat')
+                        ->label('Alamat')
+                        ->placeholder('-')
+                        ->columnSpan(['md' => 2]),
+                ]),
+        ]);
+    }
+
+    /* ---------------------------------------------------------------
+     |  TABLE
+     * ------------------------------------------------------------- */
     public static function table(Table $table): Table
     {
         return $table
+            ->defaultSort('nama_lengkap')
+            ->striped()
+            ->paginated([10, 25, 50])
             ->columns([
-                TextColumn::make('nama_lengkap')->label('Nama')->searchable()->sortable(),
-                TextColumn::make('jenis_kelamin')->label('JK')
+                TextColumn::make('nama_lengkap')
+                    ->label('Nama')
+                    ->searchable()
+                    ->sortable()
+                    ->weight('medium')
+                    ->description(fn (Pasien $record) => $record->no_telepon),
+                TextColumn::make('jenis_kelamin')
+                    ->label('JK')
                     ->badge()
+                    ->alignCenter()
                     ->color(fn (string $state) => $state === 'L' ? 'info' : 'danger'),
-                TextColumn::make('tanggal_lahir')->label('Tgl Lahir')->date('d/m/Y')->sortable(),
-                TextColumn::make('usia'),
-                TextColumn::make('no_telepon')->toggleable(),
+                TextColumn::make('tanggal_lahir')
+                    ->label('Tgl Lahir')
+                    ->date('d/m/Y')
+                    ->sortable(),
+                TextColumn::make('usia')
+                    ->badge()
+                    ->color('success'),
+                TextColumn::make('alamat')
+                    ->limit(40)
+                    ->toggleable(isToggledHiddenByDefault: true),
+            ])
+            ->filters([
+                SelectFilter::make('jenis_kelamin')
+                    ->label('Jenis Kelamin')
+                    ->options(['L' => 'Laki-laki', 'P' => 'Perempuan']),
             ])
             ->recordActions([
-                ViewAction::make()->label('Grafik'),
+                ViewAction::make()
+                    ->label('Grafik')
+                    ->icon(Heroicon::OutlinedChartBar),
                 EditAction::make(),
             ])
             ->toolbarActions([

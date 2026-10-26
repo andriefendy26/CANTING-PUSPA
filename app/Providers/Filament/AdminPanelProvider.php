@@ -63,6 +63,7 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->plugins([
                 FilamentShieldPlugin::make()
+                    ->navigationGroup('Settings')
                     ->gridColumns([
                         'default' => 1,
                         'sm' => 2,
@@ -78,6 +79,7 @@ class AdminPanelProvider extends PanelProvider
                         'default' => 1,
                         'sm' => 2,
                     ])
+
 ,
             ])
             ->authMiddleware([
